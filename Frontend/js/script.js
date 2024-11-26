@@ -56,72 +56,37 @@ video.addEventListener('click', () => {
     }
 });
 
-// Function to handle form submission
-
-  // Attach the function to the form
-document.getElementById('contact').addEventListener('submit', submitContactForm);
-
-  document.getElementById('contact').addEventListener('submit', async (event) => {
-    event.preventDefault(); // Stop the form from refreshing the page
-
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const message = document.getElementById('message').value;
-
-    try {
-      const response = await fetch('http://localhost:5001/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, message }),
-      });
-
-      const data = await response.json();
-      alert(data.message);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-});
-
-async function submitContactForm(event) {
-    event.preventDefault(); // Prevent the default form submission
+document.getElementById('contact-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
   
-    // Collect form data
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const message = document.getElementById('message').value;
-  
-    // Send data to the backend
-    try {
-      const response = await fetch('http://localhost:5001/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, message }),
-      });
-  
-      const data = await response.json();
-      if (response.ok) {
-        alert(data.message); // Success message
-      } else {
-        alert(data.error || 'Failed to send message');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Something went wrong. Please try again.');
-    }
-}
-
-
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await sendContactUsData(formData);
-      console.log('Backend response:', response); // Check the response in the browser console
-      alert(response.message); // Notify user
-    } catch (error) {
-      console.error('Submission error:', error); // Log the error in the browser console
-      alert('Submission failed. Please try again.');
-    }
+  const formData = {
+      name: document.getElementById('name').value,
+      email: document.getElementById('email').value,
+      message: document.getElementById('message').value
   };
+
+  const statusMessage = document.getElementById('statusMessage');
   
+  try {
+      const response = await fetch('http://localhost:5501/api/contact', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+          statusMessage.textContent = 'Message sent successfully!';
+          statusMessage.className = 'success';
+          document.getElementById('contactForm').reset();
+      } else {
+          throw new Error(data.message || 'Error sending message');
+      }
+  } catch (error) {
+      statusMessage.textContent = error.message;
+      statusMessage.className = 'error';
+  }
+});
