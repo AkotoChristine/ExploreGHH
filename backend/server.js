@@ -23,7 +23,7 @@ const cors = require('cors');
 // Add this before your routes
 app.use(cors());
 
-app.post('/contact', async (req, res) => {
+app.post('models/contact', async (req, res) => {
     console.log('Received data:', req.body); // Log the received form data
     try {
       const contact = new Contact(req.body);
