@@ -1,57 +1,45 @@
+require('dotenv').config();
+console.log('Environment Variables:', process.env); // Add this line to debug
+
+const mongoose = require('mongoose');
 const express = require('express');
-const cors = require('cors');
-const config = require('./config');
-const connectDB = require('./config/database');
-const errorHandler = require('./middleware/errorHandler');
-const apiRoutes = require('./routes');
 
 const app = express();
+const PORT = process.env.PORT || 5001;
 
-// Middleware
-app.use(cors(config.corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+console.log('MongoDB URI:', process.env.MONGO_URI); // Debug MongoDB URI
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('MongoDB Connected'))
+    .catch(err => console.error('MongoDB Connection Error:', err));
+
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+app.get("/", (req, res) => {
+    res.send("Server is up and running!");
 });
 
-// API Routes
-app.use('/api', apiRoutes);
+const cors = require('cors');
+// Add this before your routes
+app.use(cors());
 
-// Error handling
-app.use(errorHandler);
+app.post('models/contact', async (req, res) => {
+    console.log('Received data:', req.body); // Log the received form data
+    try {
+      const contact = new Contact(req.body);
+      await contact.save();
+      console.log('Data saved successfully');
+      res.status(201).send({ success: true, message: 'Data saved successfully' });
+    } catch (err) {
+      console.error('Error saving data:', err); // Log any backend errors
+      res.status(500).send({ success: false, message: 'Failed to save data', error: err });
+    }
+  });
+  
 
-// Handle 404
-app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
 
-const startServer = async () => {
-  try {
-    // Connect to MongoDB
-    await connectDB();
 
-    // Start the server
-    app.listen(config.port, () => {
-      console.log(`
-✓ Server running in ${config.env} mode
-✓ Listening on port ${config.port}
-✓ Press CTRL+C to stop
-      `);
-    });
-  } catch (error) {
-    console.error('✗ Server failed to start:', error.message);
-    process.exit(1);
-  }
-};
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.error('✗ Unhandled Promise Rejection:', err.message);
-  // Close server & exit process
-  process.exit(1);
-});
 
-startServer();
+
+
